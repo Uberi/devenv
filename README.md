@@ -1,0 +1,104 @@
+devenv
+======
+
+A Docker image and wrapper script set up for full-stack web dev using Python/Javascript/Go, various databases, and various cloud providers (AWS, GCP).
+
+Features:
+
+* One command to drop you into an isolated `zsh` with Oh-My-Zsh, syntax highlighting, `nvm`, and other goodies already set up.
+* Your working directory on the host machine is mounted as `/home/dev/app` within the container, but nothing else is available.
+* Somewhat protects your machine against potentially malicious packages (see "Rationale" section for details and caveats).
+* Avoid file/config pollution by packages that write files to unusual places (e.g., NLTK, Puppeteer, GCloud SDK).
+* Includes useful but proprietary utilities such as nGrok.
+
+Basically I wanted a little more isolation when developing, so this is a Docker image that closely resembles [my dev setup](https://github.com/Uberi/setup-machine).
+
+Quickstart:
+
+```bash
+# download the image and create the wrapper script
+docker pull uberi/devenv
+cat << 'EOF' > ~/.local/bin/devenv
+#!/usr/bin/env bash
+docker run -v "$(pwd):/home/dev/app" --security-opt no-new-privileges "$@" -it uberi/devenv
+EOF
+chmod +x ~/.local/bin/devenv
+
+# now, try it out
+devenv
+```
+
+Or, build it yourself:
+
+```bash
+git clone git@github.com:Uberi/devenv.git
+cd devenv
+docker build -t uberi/devenv .
+
+# push it to Docker Hub
+docker push uberi/devenv
+```
+
+Rationale
+---------
+
+NPM and PyPI packages are largely uncurated and unvetted, which has caused problems before. NPM has it especially bad, due to sprawling dependency trees in many popular frameworks:
+
+* [Plot to steal cryptocurrency foiled by the npm security team](https://blog.npmjs.org/post/185397814280/plot-to-steal-cryptocurrency-foiled-by-the-npm)
+* [Details about the event-stream incident](https://blog.npmjs.org/post/180565383195/details-about-the-event-stream-incident)
+* [Postmortem for Malicious Packages Published on July 12th, 2018](https://eslint.org/blog/2018/07/postmortem-for-malicious-package-publishes)
+* [Reported malicious module: getcookies](https://blog.npmjs.org/post/173526807575/reported-malicious-module-getcookies)
+* [npm Pulls Malicious Package that Stole Login Passwords](https://www.bleepingcomputer.com/news/security/npm-pulls-malicious-package-that-stole-login-passwords/)
+
+PyPI isn't totally safe either:
+
+* [Malicious Python libraries targeting Linux servers removed from PyPI](https://www.zdnet.com/article/malicious-python-libraries-targeting-linux-servers-removed-from-pypi/)
+* [Snake bites: Beware malicious Python libraries](https://www.infoworld.com/article/3487701/snake-bites-beware-malicious-python-libraries.html)
+
+**You may trust your direct dependencies, but do you trust your dependencies' dependencies?** As you move further down the dependency tree, you also move further away from code that you've vetted and trusted. You likely have not vetted `event-stream`'s dependencies, but missing even that one malicious package means that you end up [getting your money stolen or worse](https://blog.npmjs.org/post/185397814280/plot-to-steal-cryptocurrency-foiled-by-the-npm).
+
+**Why bother with any isolation then, if your software would be compromised anyways?** Completely true - this probably doesn't help much if you're using this at the typical workplace - who cares about what else is on the laptop if your product itself is compromised?
+
+However, if you work on your own machine, you probably have other valuable things you'd like to protect besides the current thing you're working on. Many developers run `npm install` on the same machine that they use to log into their bank and email.
+
+Some people do development inside virtual machines. I used to do this as well, but having to switch projects multiple times a day was a very frustrating experience: shared folders cause all sorts of problems (e.g., some hot reloaders fail to reload, unpredictable write performance), RAM usage prevents more than 3-4 projects from being open at a time, and battery life is severely reduced.
+
+**Isn't it relatively easy to escape from a Docker container?** I don't claim that `devenv` will protect the rest of your system from all malware, but I do claim that `devenv` will at least prevent all of the attacks in the articles above from affecting the rest of your system.
+
+In the future, I will consider solutions that are specifically designed for isolation, such as FirecrackerVM. However, putting everything in containers already significantly raises the bar for malware, while keeping the dev experience as vanilla as possible. And of course, `devenv` drops root and uses the `--security-opt no-new-privileges` flag as per best practices.
+
+It's also important to build an awareness of what isolation will protect you from. I was reminded of this a while ago, when a popular JS framework silently decided to install a pre-commit hook in the project's `.git` directory - apparently for linting purposes. I then accidentally ran `git commit` on my host machine, causing the untrusted hook script to execute.
+
+**Why use this over just Dockerizing the project properly?** Sometimes, you just don't have time - a demo to finish by 6pm, an onboarding session where you're setting things up live, or a meeting where you want to code something up in real-time during your presentation. I've been guilty before of breaking my habits for all of these reasons. That's why this Docker image is as complete and flexible as possible, so we don't have to compromise when getting started is urgent.
+
+Usage
+-----
+
+The main entry point is `devenv`, a shell script that accepts the same arguments as `docker run`.
+
+In the examples below, lines beginning with `$` are on the host machine, lines beginning with `~` are in the `devenv` shell.
+
+For example, to work on a React app:
+
+```bash
+$ cd path/to/your/react/app
+$ devenv -p 3000:3000  # drop into devenv shell with port 3000 mapped to port 3000 on the host (app will be available at http://localhost:3000)
+~ npm start  # start your app with a development server running on port 3000
+Compiled successfully!
+
+You can now view test-app in the browser.
+
+  Local:            http://localhost:3000
+  On Your Network:  http://172.17.0.2:3000
+
+Note that the development build is not optimized.
+To create a production build, use npm run build.
+```
+
+Or run a script without network access:
+
+```bash
+$ devenv --network none
+~ curl http://google.com
+curl: (6) Could not resolve host: google.com
+```
