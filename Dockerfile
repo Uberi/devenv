@@ -39,14 +39,16 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y colordiff tree tmux p7zip-
 RUN curl -o ngrok.zip https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip && unzip ngrok.zip ngrok -d /usr/bin
 
 # set up AWS CLI
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y groff
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
 
 # set Google Cloud CLI
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" > /etc/apt/sources.list.d/google-cloud-sdk.list; curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | DEBIAN_FRONTEND=noninteractive apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -; apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y google-cloud-sdk
 
-# set up user with ZSH
-RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y zsh zsh-syntax-highlighting zsh-doc zgen socat python3-psutil python3-pygit2 powerline
-RUN useradd -ms /bin/bash dev
+# set up user with ZSH and sudo
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y zsh zsh-syntax-highlighting zsh-doc zgen socat python3-psutil python3-pygit2 powerline
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo
+RUN useradd -ms /bin/bash dev && echo "dev:dev" | chpasswd && adduser dev sudo
 USER dev
 WORKDIR /home/dev/app
 

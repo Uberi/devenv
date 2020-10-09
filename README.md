@@ -11,7 +11,7 @@ Features:
 * Avoid file/config pollution by packages that write files to unusual places (e.g., NLTK, Puppeteer, GCloud SDK).
 * Includes useful but proprietary utilities such as nGrok.
 
-Basically I wanted a little more isolation when developing, so this is a Docker image that closely resembles [my dev setup](https://github.com/Uberi/setup-machine).
+Basically I want more isolation when developing software, so this is a Docker image that closely resembles [my dev setup](https://github.com/Uberi/setup-machine). See the "Rationale" section for caveats and intended use cases.
 
 Quickstart:
 
@@ -22,10 +22,18 @@ cat << 'EOF' > ~/.local/bin/devenv
 #!/usr/bin/env bash
 docker run -v "$(pwd):/home/dev/app" --security-opt no-new-privileges "$@" -it uberi/devenv
 EOF
-chmod +x ~/.local/bin/devenv
+cat << 'EOF' > ~/.local/bin/devenv-with-sudo
+#!/usr/bin/env bash
+docker run -v "$(pwd):/home/dev/app" "$@" -it uberi/devenv
+EOF
+chmod +x ~/.local/bin/devenv ~/.local/bin/devenv-with-sudo
 
 # now, try it out
 devenv
+
+# this version allows sudo to be used within the container, the password is "dev"
+# sudo isn't enabled by default, since it requires us to use a less restrictive seccomp profile (i.e., it's potentially less secure)
+devenv-with-sudo
 ```
 
 Or, build it yourself:
@@ -63,13 +71,13 @@ However, if you work on your own machine, you probably have other valuable thing
 
 Some people do development inside virtual machines. I used to do this as well, but having to switch projects multiple times a day was a very frustrating experience: shared folders cause all sorts of problems (e.g., some hot reloaders fail to reload, unpredictable write performance), RAM usage prevents more than 3-4 projects from being open at a time, and battery life is severely reduced.
 
-**Isn't it relatively easy to escape from a Docker container?** I don't claim that `devenv` will protect the rest of your system from all malware, but I do claim that `devenv` will at least prevent all of the attacks in the articles above from affecting the rest of your system.
+**Isn't it relatively easy to escape from a Docker container?** I don't claim that `devenv` will protect the rest of your system from all malware, but I do claim that `devenv` will at least prevent all of the attacks in the articles above from affecting the rest of your system - relatively low-effort malware that could easily be prevented by equally low-effort sandboxing technology.
 
 In the future, I will consider solutions that are specifically designed for isolation, such as FirecrackerVM. However, putting everything in containers already significantly raises the bar for malware, while keeping the dev experience as vanilla as possible. And of course, `devenv` drops root and uses the `--security-opt no-new-privileges` flag as per best practices.
 
 It's also important to build an awareness of what isolation will protect you from. I was reminded of this a while ago, when a popular JS framework silently decided to install a pre-commit hook in the project's `.git` directory - apparently for linting purposes. I then accidentally ran `git commit` on my host machine, causing the untrusted hook script to execute.
 
-**Why use this over just Dockerizing the project properly?** Sometimes, you just don't have time - a demo to finish by 6pm, an onboarding session where you're setting things up live, or a meeting where you want to code something up in real-time during your presentation. I've been guilty before of breaking my habits for all of these reasons. That's why this Docker image is as complete and flexible as possible, so we don't have to compromise when getting started is urgent.
+**Why use this over just containerizing the project properly?** Sometimes, you just don't have time - a demo to finish by 6pm, an onboarding session where you're setting things up live, or a meeting where you want to code something up in real-time during your presentation. I've been guilty before of breaking my habits for all of these reasons. That's why this Docker image is as complete and flexible as possible, so we don't have to compromise when getting started is urgent.
 
 Usage
 -----
@@ -82,7 +90,7 @@ For example, to work on a React app:
 
 ```bash
 $ cd path/to/your/react/app
-$ devenv -p 3000:3000  # drop into devenv shell with port 3000 mapped to port 3000 on the host (app will be available at http://localhost:3000)
+$ devenv -p 127.0.0.1:3000:3000  # drop into devenv shell with port 3000 mapped to port 3000 on the host (app will be available at http://localhost:3000)
 ~ npm start  # start your app with a development server running on port 3000
 Compiled successfully!
 
