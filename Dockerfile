@@ -48,7 +48,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
 # set up user with ZSH and sudo
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y zsh zsh-syntax-highlighting zsh-doc zgen socat python3-psutil python3-pygit2 powerline
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo
-RUN useradd -ms /bin/bash dev && echo "dev:dev" | chpasswd && adduser dev sudo
+RUN useradd -ms /bin/bash dev && echo "dev:dev" | chpasswd && adduser dev sudo && chsh -s /usr/bin/zsh dev
 USER dev
 WORKDIR /home/dev/app
 
@@ -58,6 +58,10 @@ RUN go get github.com/nomad-software/vend
 # apply ZSH config and shell aliases
 COPY --chown=dev .zshrc /home/dev/.zshrc
 RUN zsh /home/dev/.zshrc
+
+# apply tmux config and plugins
+COPY --chown=dev .tmux.conf /home/dev/.tmux.conf
+RUN cd /home/dev && git clone --depth=1 https://github.com/NHDaly/tmux-better-mouse-mode.git
 
 # workaround for broken yarnpkg command: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=933229
 ENV NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
