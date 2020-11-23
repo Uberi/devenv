@@ -29,11 +29,8 @@ RUN ln -s /usr/bin/yarnpkg /usr/bin/yarn
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3-all-dev python3-pip python3-wheel python3-rope python3-numpy python3-sympy python3-sklearn python3-pandas python3-matplotlib python3-serial python3-requests python3-sortedcontainers python3-xdo python3-psycopg2 python3-pudb flake8 mypy python3-scipy python3-plotly python3-seaborn python3-bs4 python3-pexpect python3-pyperclip python3-venv python3-q python3-flask twine
 RUN ln -s /usr/bin/python3 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip
 
-# set up stuff for various other languages
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y composer
-
 # set up useful command line tools
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y colordiff tree tmux p7zip-full curl wget gnupg2 git jekyll pcregrep whois net-tools iputils-ping traceroute checkinstall jq miller exif rsync libheif-examples sox lame jupyter-notebook moreutils vim w3m shellcheck expect
+RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y colordiff tree tmux p7zip-full curl wget gnupg2 git jekyll pcregrep whois net-tools iputils-ping traceroute checkinstall jq miller exif rsync libheif-examples sox lame jupyter-notebook moreutils vim w3m shellcheck expect
 
 # set up nGrok
 RUN curl -o ngrok.zip https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip && unzip ngrok.zip ngrok -d /usr/bin
@@ -51,6 +48,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo
 RUN useradd -ms /bin/bash dev && echo "dev:dev" | chpasswd && adduser dev sudo && chsh -s /usr/bin/zsh dev
 USER dev
 WORKDIR /home/dev/app
+
+# set up Rust stuff using Rustup's unattended install mode
+RUN curl https://sh.rustup.rs -sSf |  sh -s -- -y
 
 # set up vend, a package vendoring utility for Golang (usage: run "vend" in the working directory, then `go build -mod vendor` when building)
 RUN go get github.com/nomad-software/vend

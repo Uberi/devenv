@@ -22,16 +22,16 @@ fi
 
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
+PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/go/bin:$PATH"
 
 # load virtualenv if present
-if [ -f /home/dev/app/venv ]; then
-    source /home/dev/app/venv/bin/activate
+if [ -d "$HOME/app/venv" ]; then
+    source "$HOME/app/venv/bin/activate"
 fi
 
 # load config script if present
-if [ -f /home/dev/app/config.sh ]; then
-    source /home/dev/app/config.sh
+if [ -f "$HOME/app/config.sh" ]; then
+    source "$HOME/app/config.sh"
 fi
 
 alias 'l=ls -l --all --human-readable --color'
@@ -87,4 +87,4 @@ alias 'gbranches=git for-each-ref --sort=-authordate --format "%(authordate:iso)
 
 # random generation
 alias rand-token='echo $(head -c 16 /dev/urandom | xxd -p -c1000)'
-alias rand-password='shuf -n5 /usr/share/dict/american-english | paste -sd " " -'
+alias rand-password='grep -v "['"'"'A-Z]" /usr/share/dict/american-english | shuf -n5 | paste -sd " " -'

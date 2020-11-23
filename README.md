@@ -22,18 +22,18 @@ cat << 'EOF' > ~/.local/bin/devenv
 #!/usr/bin/env bash
 docker run -v "$(pwd):/home/dev/app" --security-opt no-new-privileges "$@" -it uberi/devenv
 EOF
-cat << 'EOF' > ~/.local/bin/devenv-with-sudo
+cat << 'EOF' > ~/.local/bin/devenv-lite
 #!/usr/bin/env bash
-docker run -v "$(pwd):/home/dev/app" "$@" -it uberi/devenv
+docker run -v "$(pwd):/home/dev/app" --network host "$@" -it uberi/devenv
 EOF
-chmod +x ~/.local/bin/devenv ~/.local/bin/devenv-with-sudo
+chmod +x ~/.local/bin/devenv ~/.local/bin/devenv-lite
 
 # now, try it out
 devenv
 
-# this version allows sudo to be used within the container, the password is "dev"
-# sudo isn't enabled by default, since it requires us to use a less restrictive seccomp profile (i.e., it's potentially less secure)
-devenv-with-sudo
+# this version allows sudo to be used within the container (password is "dev") and also makes services inside the container to be visible outside of the container, and vice versa
+# devenv-lite is potentially less secure because sudo requires this to use a less restrictive seccomp profile, and services within the container can see services on the host OS
+devenv-lite
 ```
 
 Or, build it yourself:
@@ -52,11 +52,14 @@ Rationale
 
 NPM and PyPI packages are largely uncurated and unvetted, which has caused problems before. NPM has it especially bad, due to sprawling dependency trees in many popular frameworks:
 
-* [Plot to steal cryptocurrency foiled by the npm security team](https://blog.npmjs.org/post/185397814280/plot-to-steal-cryptocurrency-foiled-by-the-npm)
-* [Details about the event-stream incident](https://blog.npmjs.org/post/180565383195/details-about-the-event-stream-incident)
-* [Postmortem for Malicious Packages Published on July 12th, 2018](https://eslint.org/blog/2018/07/postmortem-for-malicious-package-publishes)
-* [Reported malicious module: getcookies](https://blog.npmjs.org/post/173526807575/reported-malicious-module-getcookies)
-* [npm Pulls Malicious Package that Stole Login Passwords](https://www.bleepingcomputer.com/news/security/npm-pulls-malicious-package-that-stole-login-passwords/)
+* [Malicious npm package opens backdoors on programmers' computers](https://www.zdnet.com/article/malicious-npm-package-opens-backdoors-on-programmers-computers/) (2020, `twilio-npm`)
+* [Malicious npm package caught trying to steal sensitive Discord and browser files](https://www.zdnet.com/article/malicious-npm-package-caught-trying-to-steal-sensitive-discord-and-browser-files/) (2020, `fallguys`)
+* [Three npm packages found opening shells on Linux, Windows systems](https://www.zdnet.com/article/three-npm-packages-found-opening-shells-on-linux-windows-systems/) (2020, `plutov-slack-client`, `nodetest199`, `nodetest1010`)
+* [Plot to steal cryptocurrency foiled by the npm security team](https://blog.npmjs.org/post/185397814280/plot-to-steal-cryptocurrency-foiled-by-the-npm) (2019, `electron-native-notify`)
+* [npm Pulls Malicious Package that Stole Login Passwords](https://www.bleepingcomputer.com/news/security/npm-pulls-malicious-package-that-stole-login-passwords/) (2019, `bb-builder`)
+* [Details about the event-stream incident](https://blog.npmjs.org/post/180565383195/details-about-the-event-stream-incident) (2018, `event-stream`)
+* [Postmortem for Malicious Packages Published on July 12th, 2018](https://eslint.org/blog/2018/07/postmortem-for-malicious-package-publishes) (2018, `eslint-scope`, `eslint-config-eslint`)
+* [Reported malicious module: getcookies](https://blog.npmjs.org/post/173526807575/reported-malicious-module-getcookies) (2018, `getcookies`)
 
 PyPI isn't totally safe either:
 
@@ -109,4 +112,17 @@ Or run a script without network access:
 $ devenv --network none
 ~ curl http://google.com
 curl: (6) Could not resolve host: google.com
+```
+
+Or relax the restrictions a bit to allow `sudo` (password is "dev") and access to host network interfaces:
+
+```bash
+$ devenv-lite
+~ sudo apt install openscad
+[sudo] password for dev: 
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following additional packages will be installed:
+...
 ```
