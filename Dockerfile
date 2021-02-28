@@ -42,6 +42,12 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 # set Google Cloud CLI
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" > /etc/apt/sources.list.d/google-cloud-sdk.list; curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | DEBIAN_FRONTEND=noninteractive apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -; apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y google-cloud-sdk
 
+# set up Heroku CLI
+RUN curl https://cli-assets.heroku.com/install-ubuntu.sh | DEBIAN_FRONTEND=noninteractive sh
+
+# set up DigitalOcean CLI
+RUN curl -sL https://github.com/digitalocean/doctl/releases/download/v1.57.0/doctl-1.57.0-linux-amd64.tar.gz | tar -xzv -C /usr/local/bin
+
 # set up user with ZSH and sudo
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y zsh zsh-syntax-highlighting zsh-doc zgen socat python3-psutil python3-pygit2 powerline
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y sudo

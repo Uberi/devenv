@@ -10,6 +10,7 @@ Features:
 * Somewhat protects your machine against potentially malicious packages (see "Rationale" section for details and caveats).
 * Avoid file/config pollution by packages that write files to unusual places (e.g., NLTK, Puppeteer, GCloud SDK).
 * Includes useful but proprietary utilities such as nGrok.
+* Mounts `.git` from your working directory as read-only, preventing software inside the environment from tampering with Git settings such as hooks, diff commands, credential helper tools, etc.
 
 Basically I want more isolation when developing software, so this is a Docker image that closely resembles [my dev setup](https://github.com/Uberi/setup-machine). See the "Rationale" section for caveats and intended use cases.
 
@@ -20,19 +21,20 @@ Quickstart:
 docker pull uberi/devenv
 cat << 'EOF' > ~/.local/bin/devenv
 #!/usr/bin/env bash
-docker run -v "$(pwd):/home/dev/app" --security-opt no-new-privileges "$@" -it uberi/devenv
+docker run -v "$(pwd):/home/dev/app" -v "$(pwd)/.git:/home/dev/app/.git:ro" --read-only --cap-drop ALL --security-opt no-new-privileges "$@" -it uberi/devenv
 EOF
 cat << 'EOF' > ~/.local/bin/devenv-lite
 #!/usr/bin/env bash
-docker run -v "$(pwd):/home/dev/app" --network host "$@" -it uberi/devenv
+docker run -v "$(pwd):/home/dev/app" -v "$(pwd)/.git:/home/dev/app/.git:ro" --network host "$@" -it uberi/devenv
 EOF
 chmod +x ~/.local/bin/devenv ~/.local/bin/devenv-lite
 
 # now, try it out
 devenv
 
-# this version allows sudo to be used within the container (password is "dev") and also makes services inside the container to be visible outside of the container, and vice versa
-# devenv-lite is potentially less secure because sudo requires this to use a less restrictive seccomp profile, and services within the container can see services on the host OS
+# this version allows sudo to be used within the container (password is "dev"), and makes services inside and outside the container able to see each other
+# devenv-lite is potentially less secure because sudo requires us to use a less restrictive seccomp profile, and services within the container could make network calls to servers running on the host OS
+# (e.g., programs inside the container could access the host's CUPS print server)
 devenv-lite
 ```
 

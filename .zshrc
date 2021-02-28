@@ -57,7 +57,7 @@ alias 'gu=git pull'
 alias 'gur=git pull --rebase'
 alias 'gb=git branch'
 alias 'gbd=git branch --delete'
-alias 'gbl=git branch --list --all'
+alias "gbl=git for-each-ref refs/heads --color=always --sort -committerdate --format='%(HEAD)%(color:reset);%(color:yellow)%(refname:short)%(color:reset);%(contents:subject);%(color:green)(%(committerdate:relative))%(color:blue);<%(authorname)>' | column -t -s ';'"  # show branches ordered by most recently modified
 alias 'gs=git status'
 alias 'gsh=git show'
 alias 'gd=git diff'
@@ -88,3 +88,11 @@ alias 'gbranches=git for-each-ref --sort=-authordate --format "%(authordate:iso)
 # random generation
 alias rand-token='echo $(head -c 16 /dev/urandom | xxd -p -c1000)'
 alias rand-password='grep -v "['"'"'A-Z]" /usr/share/dict/american-english | shuf -n5 | paste -sd " " -'
+
+# for showing notifications outside of the container - when run, causes a notification to show up on the host machine
+# to use this, run the following bash on the host machine: `while true; do if [ -f .devenv-notify ]; then rm .devenv-notify; notify-send 'Completed!' 'The long-running operation just completed'; fi; sleep 3; done`
+alias notif='touch $HOME/app/.devenv-notify'
+
+# for copying some text to outside of the container - when run, causes its stdin to be copied to the host machine's clipboard
+# to use this, run the following bash on the host machine: `while true; do if [ -f .devenv-clipboard ]; then cat .devenv-clipboard | xclip -selection c; rm .devenv-clipboard; notify-send 'Copied!' 'Value was copied to clipboard'; fi; sleep 3; done`
+alias clip='tee $HOME/app/.devenv-clipboard'
