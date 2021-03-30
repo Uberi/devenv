@@ -46,7 +46,10 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
 RUN curl https://cli-assets.heroku.com/install-ubuntu.sh | DEBIAN_FRONTEND=noninteractive sh
 
 # set up DigitalOcean CLI
-RUN curl -sL https://github.com/digitalocean/doctl/releases/download/v1.57.0/doctl-1.57.0-linux-amd64.tar.gz | tar -xzv -C /usr/local/bin
+RUN curl --silent --location https://github.com/digitalocean/doctl/releases/download/v1.57.0/doctl-1.57.0-linux-amd64.tar.gz | tar --extract --gunzip --verbose --directory /usr/local/bin doctl
+
+# set up Redli (like redis-cli, but supports TLS and has other small quality-of-life improvements)
+RUN curl --silent --location https://github.com/IBM-Cloud/redli/releases/download/v0.5.2/redli_0.5.2_linux_amd64.tar.gz | tar --extract --gunzip --verbose --directory /usr/local/bin redli
 
 # set up user with ZSH and sudo
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y zsh zsh-syntax-highlighting zsh-doc zgen socat python3-psutil python3-pygit2 powerline

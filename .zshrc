@@ -34,6 +34,7 @@ if [ -f "$HOME/app/config.sh" ]; then
     source "$HOME/app/config.sh"
 fi
 
+alias 'c=cat --show-nonprinting'
 alias 'l=ls -l --all --human-readable --color'
 alias 'flatten=mv ./*/**/*(.D) .'
 alias 'archive-tgz=tar --create --gzip --verbose --file' # `archive-tgz TGZ_FILE_TO_CREATE FILES*`
@@ -48,39 +49,16 @@ alias 'v+=source venv/bin/activate'
 alias 'v-=deactivate'
 
 alias 'gl=git log --graph --all --decorate --date=local'
-alias 'gp=git push'
-alias 'gph=git push origin HEAD'
-alias 'gpf=git push --force-with-lease origin HEAD'
 alias 'gcl=git clone'
-alias 'gf=git fetch --all'
-alias 'gu=git pull'
-alias 'gur=git pull --rebase'
-alias 'gb=git branch'
-alias 'gbd=git branch --delete'
 alias "gbl=git for-each-ref refs/heads --color=always --sort -committerdate --format='%(HEAD)%(color:reset);%(color:yellow)%(refname:short)%(color:reset);%(contents:subject);%(color:green)(%(committerdate:relative))%(color:blue);<%(authorname)>' | column -t -s ';'"  # show branches ordered by most recently modified
 alias 'gs=git status'
 alias 'gsh=git show'
 alias 'gd=git diff'
 alias 'gdc=git diff --cached'
-alias 'gdt=git difftool --dir-diff --tool=meld --no-prompt'
-alias 'gdtc=git difftool --cached --dir-diff --tool=meld --no-prompt'
-alias 'ga=git add'
-alias 'gau=git add --update'
-alias 'gc=git commit'
-alias 'gcm=git commit -m'
 alias 'gk=git checkout'
-alias 'gkb=git checkout -b'
 alias 'gr=git reset'
 alias 'grh=git reset --hard'
 alias 'grm=git rm'
-alias 'grb=git rebase'
-alias 'grbi=git rebase --interactive'
-alias 'gt=git tag -s'
-alias 'gt=git tag --list'
-alias 'grem=git remote'
-alias 'gh=git stash'
-alias 'ghp=git stash pop'
-alias 'ghl=git stash list'
 alias 'ghist=git log --follow -p --stat --' # show the full history of a file, including renames and diffs for each change
 alias 'groot=cd $(git rev-parse --show-toplevel)'  # go to root level of the current git repo
 alias 'gbranches=git for-each-ref --sort=-authordate --format "%(authordate:iso) %(align:left,25)%(refname:short)%(end) %(subject)" refs/heads'
