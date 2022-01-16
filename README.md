@@ -21,18 +21,21 @@ Quickstart:
 docker pull uberi/devenv
 cat << 'EOF' > ~/.local/bin/devenv
 #!/usr/bin/env bash
-docker run -v "$(pwd):/home/dev/app" -v "$(pwd)/.git:/home/dev/app/.git:ro" --read-only --cap-drop ALL --security-opt no-new-privileges "$@" -it uberi/devenv
+docker run -v "$(pwd):/home/dev/app" --read-only --cap-drop ALL --security-opt no-new-privileges "$@" -it uberi/devenv
 EOF
 cat << 'EOF' > ~/.local/bin/devenv-lite
 #!/usr/bin/env bash
-docker run -v "$(pwd):/home/dev/app" -v "$(pwd)/.git:/home/dev/app/.git:ro" --network host "$@" -it uberi/devenv
+eval "$(ssh-agent -s)"
+SSH_ASKPASS='zenity --question --text="SSH agent request from devenv: $1"' ssh-add -c ~/.ssh/id_rsa
+docker run -v "$(pwd):/home/dev/app" -v "$SSH_AUTH_SOCK:/ssh-agent" -e SSH_AUTH_SOCK=/ssh-agent --network host "$@" -it uberi/devenv
+eval "$(ssh-agent -k)"
 EOF
 chmod +x ~/.local/bin/devenv ~/.local/bin/devenv-lite
 
 # now, try it out
 devenv
 
-# this version allows sudo to be used within the container (password is "dev"), and makes services inside and outside the container able to see each other
+# this version allows sudo to be used within the container (password is "dev"), makes services inside and outside the container able to see each other, and allows access to the host's SSH agent (after showing a messagebox on the host asking the user to confirm)
 # devenv-lite is potentially less secure because sudo requires us to use a less restrictive seccomp profile, and services within the container could make network calls to servers running on the host OS
 # (e.g., programs inside the container could access the host's CUPS print server)
 devenv-lite
