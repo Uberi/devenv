@@ -8,7 +8,7 @@ ZSH_THEME="robbyrussell"
 HYPHEN_INSENSITIVE="true"  # hyphen-insensitive completion
 zstyle ':omz:update' mode disabled  # disable automatic updates
 DISABLE_UNTRACKED_FILES_DIRTY="true" # disable marking untracked files under VCS as dirty - makes status check for large repositories much faster
-plugins=(git sudo wd command-not-found zsh-completions)
+plugins=(sudo wd command-not-found zsh-completions)
 source $ZSH/oh-my-zsh.sh
 
 # configure syntax highlighting
@@ -58,7 +58,6 @@ alias 'gd=DELTA_FEATURES=side-by-side git diff'
 alias 'gdc=DELTA_FEATURES=side-by-side git diff --cached'
 alias 'gdw=git diff'
 alias 'gdcw=git diff --cached'
-unalias ga gau  # remove aliases that were added by the git plugin in Oh-My-Zsh
 ga () { git add "$@"; git status }
 gau () { git add --update "$@"; git status }
 alias 'gc=git commit'
